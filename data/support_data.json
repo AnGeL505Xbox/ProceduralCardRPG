@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "content_version": "2026.10.04",
+  "data": {
+    "CHRISTIANITY": {
+      "LUCIFER": {
+        "weight": 0.1,
+        "desc": "El angel caido que traera paz al mundo",
+        "element": "OBSCUR",
+        "health": { "max": 75, "min": 50 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 20, "min": 15 },
+        "skill_list": ["Luz de la oscuridad", "Llamas del infierno"]
+      },
+      "URIEL": {
+        "weight": 0.45,
+        "desc": "El angel de la luz que traera esperanza al mundo",
+        "element": "LUMINE",
+        "health": { "max": 75, "min": 50 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 20, "min": 15 },
+        "skill_list": ["Luz celestial", "Sanación divina"]
+      },
+      "SARIEL": {
+        "weight": 0.45,
+        "desc": "El angel que traera justicia al mundo",
+        "element": "TERRA",
+        "health": { "max": 75, "min": 50 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 20, "min": 15 },
+        "skill_list": ["Tierra temblorosa", "Protección terrenal"]
+      },
+      "MIGUEL": {
+        "weight": 0.75,
+        "desc": "El angel que traera justicia al mundo",
+        "element": "LUMINE",
+        "health": { "max": 75, "min": 50 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 20, "min": 15 },
+        "skill_list": ["Tierra temblorosa", "Protección terrenal"]
+      }
+    },
+    "CELTIC": {
+      "BANSHEE": {
+        "weight": 0.5,
+        "desc": "Su llanto anuncia la muerte de un ser querido",
+        "element": "OBSCUR",
+        "health": { "max": 75, "min": 50 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 20, "min": 15 },
+        "skill_list": ["Tierra temblorosa", "Protección terrenal"]
+      },
+      "KELPIE": {
+        "weight": 0.2,
+        "desc": "Atrae a cualquier persona para que lo monten y poder ahogarlo en el fondo del mar",
+        "element": "AQUA",
+        "health": { "max": 75, "min": 50 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 20, "min": 15 },
+        "skill_list": ["Tierra temblorosa", "Protección terrenal"]
+      },
+      "PUKA": {
+        "weight": 0.15,
+        "desc": "Espiritu cambiaformas de la noche... le gusta hacer travesuras",
+        "element": "OBSCUR",
+        "health": { "max": 75, "min": 50 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 20, "min": 15 },
+        "skill_list": ["Tierra temblorosa", "Protección terrenal"]
+      },
+      "DULLAHAN": {
+        "weight": 0.15,
+        "desc": "Cabalga en busca de su proxima alma, la cual llama con su voz",
+        "element": "OBSCUR",
+        "health": { "max": 75, "min": 50 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 20, "min": 15 },
+        "skill_list": ["Tierra temblorosa", "Protección terrenal"]
+      }
+    }
+  }
+}

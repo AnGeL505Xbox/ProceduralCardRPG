@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "content_version": "2026.10.04",
+  "data": {
+    "LISBETH": {
+      "Base": {
+        "weight": 0.8,
+        "desc": "Conoce muy bien el rechazo, pero eso no la detendra",
+        "main_element": "NEUTRAL",
+        "second_element": "NEUTRAL",
+        "health": { "max": 75, "min": 70 },
+        "attack": { "max": 24, "min": 20 },
+        "defense": { "max": 26, "min": 20 },
+        "ultimate_skill": { "Golpe aturdidor": 1.0 }
+      },
+      "En la muerte": {
+        "weight": 0.3,
+        "desc": "Despues de que ella murio, Lis no ha sido la misma",
+        "main_element": "OBSCUR",
+        "second_element": "LUMINE",
+        "health": { "max": 75, "min": 70 },
+        "attack": { "max": 24, "min": 20 },
+        "defense": { "max": 26, "min": 20 },
+        "ultimate_skill": { "Lagrimas de tristeza": 0.85, "Caos": 0.15 }
+      }
+    },
+    "LEAH": {
+      "Base": {
+        "weight": 0.5,
+        "desc": "No ha sufrido ningun prejuicio hasta el dia del torneo",
+        "main_element": "NEUTRAL",
+        "second_element": "NEUTRAL",
+        "health": { "max": 75, "min": 70 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 24, "min": 20 },
+        "ultimate_skill": { "Golpe aturdidor": 1.0 }
+      },
+      "Inquisidor 264": {
+        "weight": 0.3,
+        "desc": "Fue raptada para poder hacer experimentos con ella",
+        "main_element": "PSI",
+        "second_element": "OBSCUR",
+        "health": { "max": 75, "min": 70 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 24, "min": 20 },
+        "ultimate_skill": { "Espacio raro": 0.7, "Espejo laser": 0.3 }
+      },
+      "Rebelde": {
+        "weight": 0.2,
+        "desc": "Fue raptada para poder hacer experimentos con ella",
+        "main_element": "PSI",
+        "second_element": "NEUTRAL",
+        "health": { "max": 75, "min": 70 },
+        "attack": { "max": 30, "min": 20 },
+        "defense": { "max": 24, "min": 20 },
+        "ultimate_skill": { "Espacio raro": 1.0 }
+      }
+    }
+  }
+}

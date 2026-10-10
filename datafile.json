@@ -1,0 +1,60 @@
+{
+    "schema_version": 1,
+    "main_cards": {
+        "2414e4b21db24bd0a36616e4f7e7bb29": {
+            "id": "2414e4b21db24bd0a36616e4f7e7bb29",
+            "name": "LISBETH - Base",
+            "description": "Conoce muy bien el rechazo, pero eso no la detendra",
+            "main_element": "NEUTRAL",
+            "second_element": "NEUTRAL",
+            "rarity": 1,
+            "support": "74f3ef21f77e44038149400d1ac8eefe",
+            "stat_variation": 0.04299655811596839,
+            "base_health": 70.00225857442535,
+            "base_attack": 24,
+            "base_defense": 23,
+            "mod_health": 73,
+            "mod_attack": 25,
+            "mod_defense": 24,
+            "ultimate_skill": {
+                "name": "Golpe aturdidor",
+                "description": "Un ataque que aturde al enemigo",
+                "element": "NONE",
+                "skill_type": "ULTIMATE",
+                "base_power": 100
+            }
+        }
+    },
+    "support_cards": {
+        "74f3ef21f77e44038149400d1ac8eefe": {
+            "id": "74f3ef21f77e44038149400d1ac8eefe",
+            "name": "URIEL",
+            "description": "El angel de la luz que traera esperanza al mundo",
+            "element": "LUMINE",
+            "rarity": 1,
+            "stat_variation": 0.13558939790995722,
+            "base_health": 50.01129287212677,
+            "base_attack": 30,
+            "base_defense": 19,
+            "mod_health": 57,
+            "mod_attack": 34,
+            "mod_defense": 22,
+            "skill_list": [
+                {
+                    "name": "Luz celestial",
+                    "description": "Un ataque de luz que ilumina el camino",
+                    "element": "LUMINE",
+                    "skill_type": "ATTACK",
+                    "base_power": 110
+                },
+                {
+                    "name": "Sanación divina",
+                    "description": "Una habilidad de sanación que cura heridas",
+                    "element": "LUMINE",
+                    "skill_type": "HEALING",
+                    "base_power": 80
+                }
+            ]
+        }
+    }
+}

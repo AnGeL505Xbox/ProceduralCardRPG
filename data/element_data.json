@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "content_version": "2026.10.04",
+  "data": {
+    "LUMINE": {
+      "OBSCUR": 2,
+      "PSI": 0.5,
+
+      "NATURA": 0.5,
+      "TOKSIC": 1.5,
+
+      "NEUTRAL": 1.5
+    },
+    "OBSCUR": {
+      "LUMINE": 2,
+      "PSI": 2,
+
+      "AQUA": 1.5,
+      "IGNI": 1.5,
+
+      "ELECTRO": 1.5,
+      "NATURA": 1.5,
+
+      "NEUTRAL": 1.5
+    },
+    "PSI": {
+      "LUMINE": 2,
+      "OBSCUR": 0.5,
+      "PSI": 2,
+
+      "TOKSIC": 0.5,
+
+      "NEUTRAL": 1.5
+    },
+
+    "AQUA": {
+      "IGNI": 2,
+      "TERRA": 2,
+
+      "CRYO": 0.5,
+      "ELECTRO": 0.5,
+      "PLASMA": 0.5,
+      "TOKSIC": 0.5,
+      "NATURA": 1.5
+    },
+    "IGNI": {
+      "AQUA": 1.5,
+      "VENTUS": 0.5,
+
+      "CRYO": 2,
+      "PLASMA": 0.5,
+      "METALI": 2,
+      "NATURA": 2,
+
+      "NEUTRAL": 2
+    },
+    "TERRA": {
+      "AQUA": 2,
+      "IGNI": 2,
+      "VENTUS": 2,
+
+      "CRYO": 1,
+      "ELECTRO": 0,
+      "PLASMA": 0.5,
+      "METALI": 0.5,
+      "NATURA": 0.5,
+      "TOKSIC": 0.5
+    },
+    "VENTUS": {
+      "IGNI": 1.5,
+      "TERRA": 0.5,
+      "VENTUS": 2,
+
+      "NATURA": 0.5,
+      "TOKSIC": 1.5
+    },
+
+    "CRYO": {
+      "AQUA": 2,
+      "IGNI": 0.5,
+      "TERRA": 1.5,
+
+      "ELECTRO": 0,
+      "PLASMA": 0.5,
+      "METALI": 1.5,
+      "NATURA": 2
+    },
+    "ELECTRO": {
+      "AQUA": 2,
+      "TERRA": 0,
+
+      "CRYO": 2,
+      "ELECTRO": 2,
+      "PLASMA": 0.5,
+      "METALI": 2,
+      "NATURA": 2
+    },
+    "PLASMA": {
+      "AQUA": 2,
+      "TERRA": 2,
+
+      "CRYO": 2,
+      "ELECTRO": 2,
+      "PLASMA": 2,
+      "METALI": 2,
+      "NATURA": 2,
+
+      "NEUTRAL": 2
+    },
+    "METALI": {
+      "IGNI": 0.5,
+      "TERRA": 1.5,
+      "VENTUS": 2,
+
+      "ELECTRO": 0,
+      "PLASMA": 0.5,
+      "NATURA": 1.5
+    },
+    "NATURA": {
+      "AQUA": 1.5,
+      "IGNI": 0,
+      "TERRA": 1.5,
+
+      "CRYO": 0.5,
+      "ELECTRO": 0.5,
+      "PLASMA": 0,
+      "METALI": 0.5,
+      "NATURA": 2,
+      "TOKSIC": 0.5
+    },
+    "TOKSIC": {
+      "PSI": 2,
+
+      "AQUA": 1.5,
+      "TERRA": 0.5,
+
+      "METALI": 0.5,
+      "NATURA": 1.5,
+
+      "NEUTRAL": 1.5
+    },
+    "NEUTRAL": {
+      "LUMINE": 0,
+      "OBSCUR": 0,
+      "PSI": 0,
+
+      "IGNI": 0,
+
+      "ELECTRO": 0.5,
+      "PLASMA": 0,
+      "METALI": 0.5,
+      "NATURA": 1.5,
+      "TOKSIC": 0.5,
+
+      "NEUTRAL": 1.5
+    }
+  }
+}

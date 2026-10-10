@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "content_version": "2026.10.04",
+  "data": {
+    "Luz de la oscuridad": {
+      "name": "Luz de la oscuridad",
+      "desc": "Un ataque de luz que ilumina la oscuridad",
+      "element": "LUMINE",
+      "base_power": 100,
+      "skill_type": "ATTACK"
+    },
+    "Llamas del infierno": {
+      "name": "Llamas del infierno",
+      "desc": "Un ataque de fuego que consume todo a su paso",
+      "element": "IGNI",
+      "base_power": 120,
+      "skill_type": "ATTACK"
+    },
+    "Luz celestial": {
+      "name": "Luz celestial",
+      "desc": "Un ataque de luz que ilumina el camino",
+      "element": "LUMINE",
+      "base_power": 110,
+      "skill_type": "ATTACK"
+    },
+    "Sanación divina": {
+      "name": "Sanación divina",
+      "desc": "Una habilidad de sanación que cura heridas",
+      "element": "LUMINE",
+      "base_power": 80,
+      "skill_type": "HEALING"
+    },
+    "Tierra temblorosa": {
+      "name": "Tierra temblorosa",
+      "desc": "Un ataque de tierra que sacude el suelo",
+      "element": "TERRA",
+      "base_power": 90,
+      "skill_type": "ATTACK"
+    },
+    "Protección terrenal": {
+      "name": "Protección terrenal",
+      "desc": "Una habilidad de defensa que protege del daño",
+      "element": "TERRA",
+      "base_power": 70,
+      "skill_type": "DEFENSE"
+    },
+    "Lagrimas de tristeza": {
+      "name": "Lagrimas de tristeza",
+      "desc": "Un ataque de oscuridad que derrama lagrimas de tristeza",
+      "element": "OBSCUR",
+      "base_power": 100,
+      "skill_type": "ULTIMATE"
+    },
+    "Espacio raro": {
+      "name": "Espacio raro",
+      "desc": "Un ataque de psique que manipula el espacio",
+      "element": "PSI",
+      "base_power": 100,
+      "skill_type": "ULTIMATE"
+    },
+    "Ciencia loca": {
+      "name": "Ciencia loca",
+      "desc": "Un ataque de ciencia que desestabiliza la realidad",
+      "element": "NONE",
+      "base_power": 100,
+      "skill_type": "ULTIMATE"
+    },
+    "Espada de tinta": {
+      "name": "Espada de tinta",
+      "desc": "Un ataque de oscuridad que corta el alma",
+      "element": "OBSCUR",
+      "base_power": 100,
+      "skill_type": "ULTIMATE"
+    },
+    "Destruccion": {
+      "name": "Destruccion",
+      "desc": "Un ataque de destrucción que consume todo a su paso",
+      "element": "NONE",
+      "base_power": 100,
+      "skill_type": "ULTIMATE"
+    },
+    "Caos": {
+      "name": "Caos",
+      "desc": "Un ataque de caos que desestabiliza la realidad",
+      "element": "NONE",
+      "base_power": 100,
+      "skill_type": "ULTIMATE"
+    },
+    "Golpe aturdidor": {
+      "name": "Golpe aturdidor",
+      "desc": "Un ataque que aturde al enemigo",
+      "element": "NONE",
+      "base_power": 100,
+      "skill_type": "ULTIMATE"
+    },
+    "Espejo laser": {
+      "name": "Espejo laser",
+      "desc": "Un ataque de psique que refleja la luz",
+      "element": "PSI",
+      "base_power": 100,
+      "skill_type": "ULTIMATE"
+    }
+  }
+}

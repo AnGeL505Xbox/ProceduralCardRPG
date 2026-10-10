@@ -1,0 +1,973 @@
+===============================================================================
+GENERADOR PROCEDURAL DE CARTAS RPG - DOCUMENTACION DE SISTEMAS
+===============================================================================
+
+Fecha de revision: 4 de octubre de 2026
+
+Versiones declaradas en el codigo:
+  - main.py:             1.0
+  - generator.py:        2.0
+  - globals.py:          1.2
+  - loader.py:           2.0b
+  - templates.py:        1.0
+  - main_card.py:        1.2
+  - support_card.py:     1.2
+  - json_validator.py:   2.0
+
+Version de esquema de los JSON activos: 1
+Version de contenido declarada:          2026.10.04
+
+Este documento describe el estado real del codigo fuente y los catalogos
+existentes en la fecha indicada.
+
+
+===============================================================================
+1. PROPOSITO Y ESTADO GENERAL
+===============================================================================
+
+El proyecto es un generador hibrido de cartas RPG ejecutado desde terminal.
+Permite generar:
+
+  1. Un personaje con una carta de soporte equipada.
+  2. Un personaje sin soporte.
+  3. Una carta de soporte independiente.
+
+Cada resultado incluye identidad, rareza, elementos, estadisticas base,
+estadisticas modificadas y habilidades. En una generacion combinada, el soporte
+tambien modifica las estadisticas temporales del personaje.
+
+Los personajes, soportes y habilidades se almacenan en JSON. loader.py valida
+sus versiones, transforma los datos crudos en plantillas tipadas e inmutables y
+los agrupa dentro de un unico objeto Catalogs.
+
+El sistema es hibrido de forma intencional:
+
+  - Las semillas controlan la estructura principal de la generacion.
+  - Un numero especial parcialmente aleatorio controla variaciones adicionales.
+  - Repetir las semillas no garantiza las mismas estadisticas finales.
+
+
+===============================================================================
+2. ESTRUCTURA DEL PROYECTO
+===============================================================================
+
+main.py
+  Punto de entrada de terminal. Carga Catalogs, muestra el menu, prepara los tres
+  RNG y llama al generador correspondiente.
+
+generator.py
+  Genera MainCard y SupportCard exclusivamente desde plantillas tipadas.
+
+globals.py
+  Define Elements, Rarity, SkillTypes, GlobalCharacters y GlobalSupportGroups.
+  Incluye seleccion de rareza, seleccion ponderada de plantillas y habilidades,
+  y la formula comun de modificacion de stats.
+
+loader.py
+  Abre los JSON con UTF-8, comprueba schema_version, ejecuta validadores,
+  convierte datos a plantillas y construye Catalogs.
+
+json_validator.py
+  Valida actualmente el catalogo de personajes y parte del catalogo de soportes.
+
+templates.py
+  Define las plantillas inmutables StatRange, SkillTemplate, WeightedSkill,
+  CharacterVariantTemplate, SupportTemplate y Catalogs.
+
+main_card.py
+  Define la instancia mutable MainCard, el estado temporal, la aplicacion de
+  soporte, el daño basico y la presentacion de terminal.
+
+support_card.py
+  Define la instancia mutable SupportCard y su presentacion de terminal.
+
+data/main_data.json
+  Personajes, variantes, pesos, elementos, rangos y ultimates.
+
+data/support_data.json
+  Grupos de soporte, soportes ponderados, stats y habilidades.
+
+data/skill_data.json
+  Catalogo de habilidades reutilizadas por personajes y soportes.
+
+data/element_data.json
+  Matriz elemental versionada. Todavia no se carga en Catalogs ni se consume.
+
+
+===============================================================================
+3. REQUISITOS Y EJECUCION
+===============================================================================
+
+El codigo activo utiliza solamente la biblioteca estandar de Python.
+
+Entorno verificado:
+
+  Python 3.14.7
+
+Ejecucion:
+
+  python main.py
+
+En consolas de Windows que no puedan representar bordes Unicode o emoji:
+
+  python -X utf8 main.py
+
+Menu:
+
+  1. Generar personaje y soporte.
+  2. Generar solo personaje.
+  3. Generar solo soporte.
+  4. Salir.
+
+Las semillas deben ser enteros. Una entrada no numerica produce ValueError; la
+interfaz todavia no vuelve a solicitar automaticamente una semilla invalida.
+
+El menu procesa una generacion valida por ejecucion. Una opcion de menu invalida
+vuelve a llamar selector() recursivamente.
+
+3.1 Diagrama de flujo de los sistemas
+
+El diagrama muestra el arranque, la construccion del Catalogs tipado, la
+preparacion del sistema hibrido de RNG y las tres rutas disponibles en el menu.
+element_data.json aparece como archivo de datos futuro: tiene version, pero aun
+no forma parte de load_catalogs().
+
+```mermaid
+flowchart TD
+    A[Inicio: main.py] --> B[load_catalogs]
+
+    subgraph Carga[Lectura y construccion de catalogos]
+        B --> C1[Leer main_data.json]
+        B --> C2[Leer support_data.json]
+        B --> C3[Leer skill_data.json]
+        C1 --> D[Comprobar schema_version]
+        C2 --> D
+        C3 --> D
+        D --> E[Validar personajes y soportes]
+        E --> F[Construir SkillTemplate]
+        F --> G[Construir CharacterVariantTemplate y SupportTemplate]
+        G --> H[Resolver referencias de habilidades]
+        H --> I[Crear Catalogs]
+        J[element_data.json: versionado, aun no cargado] -.-> I
+    end
+
+    I --> K[Mostrar menu]
+    K --> L{Opcion}
+    L -->|1: personaje y soporte| M[Leer ambas semillas]
+    L -->|2: solo personaje| N[Leer semilla principal]
+    L -->|3: solo soporte| O[Leer semilla secundaria]
+    L -->|4: salir| Z[Fin]
+
+    M --> P[Crear character_rng y support_rng]
+    N --> Q[character_seed definido; support_seed = 0]
+    O --> R[character_seed = 0; support_seed definido]
+    P --> S[Divisor aleatorio global de 1 a 20]
+    Q --> S
+    R --> S
+    S --> T[Calcular special_number y crear special_rng]
+
+    T --> U{Modo de generacion}
+    U -->|Opcion 1| V[generate_main: personaje y soporte]
+    U -->|Opcion 2| W[generate_main: personaje sin soporte]
+    U -->|Opcion 3| X[generate_support: soporte independiente]
+    V --> Y[MainCard aplica bonificacion del soporte]
+    W --> AA[Crear MainCard sin soporte]
+    X --> AB[Crear SupportCard]
+    Y --> AC[Mostrar resultado en terminal]
+    AA --> AC
+    AB --> AC
+```
+
+Flujo abreviado de aleatoriedad:
+
+  character_rng  -> personaje, rareza, variante, stats base y ultimate.
+  support_rng    -> grupo, soporte, rareza y stats base del soporte.
+  special_rng    -> variacion extra; lo inicializa special_number, que depende
+                    de ambas semillas y de un divisor global sin semilla fija.
+
+En el modo combinado, el personaje consume primero una variacion de special_rng;
+despues el soporte consume la siguiente. En los modos independientes solo se
+genera la variacion de la carta correspondiente.
+
+
+===============================================================================
+4. DOCUMENTOS JSON Y VERSIONADO
+===============================================================================
+
+Los cuatro documentos usan este sobre:
+
+  {
+    "schema_version": 1,
+    "content_version": "2026.10.04",
+    "data": { ... }
+  }
+
+schema_version
+  Identifica la estructura esperada. loader.py rechaza main, support o skill si
+  su version no coincide con la constante compatible correspondiente.
+
+content_version
+  Identifica la edicion del contenido. Actualmente se declara en los cuatro JSON,
+  pero loader.py no la compara ni la conserva dentro de Catalogs.
+
+data
+  Contiene el catalogo especifico del documento.
+
+Versiones soportadas declaradas en loader.py:
+
+  SUPPORTED_CHARACTER_VERSION      = 1
+  SUPPORTED_SUPPORT_VERSION        = 1
+  SUPPORTED_SKILL_VERSION          = 1
+  SUPPORTED_ELEMENT_MATRIX_VERSION = 1
+
+La constante elemental ya existe, pero todavia no se utiliza.
+
+verify_schema() comprueba schema_version y devuelve document["data"]. No valida
+todavia la presencia o el tipo de content_version y data.
+
+
+===============================================================================
+5. CARGA Y CONSTRUCCION DE CATALOGOS
+===============================================================================
+
+La entrada publica es:
+
+  load_catalogs() -> Catalogs
+
+Flujo actual:
+
+  1. Abre main_data.json, support_data.json y skill_data.json en UTF-8.
+  2. Comprueba schema_version de cada documento.
+  3. Valida personajes y soportes.
+  4. Construye primero el catalogo de SkillTemplate.
+  5. Construye CharacterVariantTemplate y resuelve sus ultimates.
+  6. Construye SupportTemplate y resuelve sus listas de habilidades.
+  7. Comprueba las referencias de habilidades en los catalogos construidos.
+  8. Devuelve Catalogs(characters, supports, skills).
+
+Catalogos activos verificados:
+
+  Personajes:             2
+  Variantes:              5
+  Grupos de soporte:      2
+  Soportes:               8
+  Habilidades:           14
+
+Las referencias se resuelven una sola vez durante la carga. generator.py recibe
+objetos SkillTemplate ya construidos y no necesita consultar skill_data.json.
+
+Advertencia de diagnostico:
+  Una referencia inexistente puede producir KeyError durante la construccion
+  antes de alcanzar validate_catalog_references(). La validacion cruzada actual
+  confirma catalogos ya construidos, pero no siempre produce el primer error mas
+  descriptivo posible.
+
+
+===============================================================================
+6. PLANTILLAS TIPADAS
+===============================================================================
+
+Todas las clases de templates.py usan @dataclass(frozen=True).
+
+6.1 StatRange
+
+Campos:
+
+  minimum: int | float
+  maximum: int | float
+
+Representa el rango de una estadistica. El validador principal comprueba que
+minimum no sea mayor que maximum para personajes. La plantilla no implementa un
+__post_init__ propio.
+
+6.2 SkillTemplate
+
+Campos:
+
+  name
+  desc
+  element: Elements
+  skill_type: SkillTypes
+  base_power
+
+Representa una habilidad resuelta y reutilizable.
+
+6.3 WeightedSkill
+
+Campos:
+
+  skill: SkillTemplate
+  weight: float
+
+Une una ultimate ya resuelta con su peso relativo de seleccion.
+
+6.4 CharacterVariantTemplate
+
+Campos:
+
+  weight
+  desc
+  main_element
+  second_element
+  health
+  attack
+  defense
+  ultimate_skill: tuple[WeightedSkill, ...]
+
+Aunque el campo se llama ultimate_skill en singular, contiene una tupla de
+posibles ultimates ponderadas.
+
+6.5 SupportTemplate
+
+Campos:
+
+  name
+  weight
+  desc
+  element
+  health
+  attack
+  defense
+  skills: tuple[SkillTemplate, ...]
+
+6.6 Catalogs
+
+Campos:
+
+  characters: dict[str, dict[str, CharacterVariantTemplate]]
+  supports:   dict[str, dict[str, SupportTemplate]]
+  skills:     dict[str, SkillTemplate]
+
+Catalogs es frozen, pero los diccionarios interiores siguen siendo mutables.
+
+Compatibilidad:
+  WeightedSkill y SupportTemplate hacen referencia a SkillTemplate antes de su
+  declaracion. Esto funciona en el entorno verificado de Python 3.14. Para
+  versiones anteriores puede ser necesario reordenar SkillTemplate o habilitar
+  anotaciones diferidas.
+
+
+===============================================================================
+7. SISTEMA HIBRIDO DE RNG
+===============================================================================
+
+main() recibe character_seed, support_seed, option y Catalogs.
+
+Una semilla None se sustituye por cero:
+
+  character_rng = random.Random(character_seed)
+  support_rng   = random.Random(support_seed)
+
+El numero especial se calcula con:
+
+  special_number = round(
+      (character_seed + support_seed) / random.randint(1, 20)
+  )
+
+El divisor usa el RNG global sin una semilla fija. El resultado inicializa:
+
+  special_rng = random.Random(special_number)
+
+7.1 character_rng controla
+
+  - Personaje.
+  - Rareza del personaje.
+  - Variante ponderada.
+  - HP, ataque y defensa base.
+  - Ultimate ponderada.
+
+7.2 support_rng controla
+
+  - Grupo de soporte.
+  - Rareza del soporte.
+  - Soporte ponderado dentro del grupo.
+  - HP, ataque y defensa base del soporte.
+
+7.3 special_rng controla
+
+  - Variacion adicional del personaje: 0.00 a 0.32.
+  - Variacion adicional del soporte:   0.00 a 0.16.
+
+En una generacion combinada, special_rng consume primero la variacion del
+personaje y despues la del soporte. En una generacion independiente de soporte,
+el soporte consume el primer valor.
+
+7.4 Contrato de reproducibilidad
+
+Las semillas conservan la estructura controlada por character_rng y support_rng
+mientras no cambien enums, catalogos, pesos, orden de llamadas o algoritmo.
+
+No garantizan:
+
+  - El mismo numero especial.
+  - La misma variacion.
+  - Las mismas stats modificadas o temporales.
+  - El mismo UUID de MainCard.
+
+
+===============================================================================
+8. RAREZAS Y ESTADISTICAS
+===============================================================================
+
+Rareza       Multiplicador   Peso
+---------------------------------
+COMMON            1.00       50 %
+UNCOMMON          1.10       25 %
+RARE              1.15       15 %
+EPIC              1.35        8 %
+LEGENDARY         1.65        2 %
+
+Personajes y soportes usan la misma distribucion.
+
+Formula:
+
+  stat_modificada = round(
+      stat_base * (multiplicador_de_rareza + variacion)
+  )
+
+Multiplicador total posible:
+
+  Personaje: 1.00 a 1.97.
+  Soporte:   1.00 a 1.81.
+
+HP base usa uniform() y puede tener decimales. Ataque y defensa usan randint().
+Los limites de ataque y defensa se convierten a int antes de llamar randint().
+
+
+===============================================================================
+9. GENERACION DE PERSONAJES
+===============================================================================
+
+Funcion:
+
+  generate_main(
+      character_rng,
+      support_rng,
+      special_rng,
+      special_character,
+      catalog,
+      isCombo,
+  ) -> MainCard
+
+Proceso:
+
+  1. Selecciona un miembro de GlobalCharacters, salvo que special_character fuerce
+     uno concreto.
+  2. Selecciona rareza con character_rng.
+  3. Obtiene la variacion con special_rng.
+  4. Recupera las variantes tipadas desde catalog.characters.
+  5. Selecciona la variante con select_weighted_template().
+  6. Lee descripcion, elementos y rangos directamente desde la plantilla.
+  7. Si isCombo es True, genera un soporte con los mismos support_rng y special_rng.
+  8. Genera stats base.
+  9. Calcula stats modificadas.
+ 10. Selecciona un SkillTemplate con select_weighted_skill().
+ 11. Construye MainCard.
+
+Personajes activos:
+
+  LISBETH
+  LEAH
+
+Cada personaje se selecciona uniformemente: aproximadamente 50 %.
+
+Variantes de Lisbeth:
+
+  Base            peso 0.8; probabilidad interna 72.73 %.
+  En la muerte    peso 0.3; probabilidad interna 27.27 %.
+
+Variantes de Leah:
+
+  Base            peso 0.5; probabilidad interna 50 %.
+  Inquisidor 264  peso 0.3; probabilidad interna 30 %.
+  Rebelde         peso 0.2; probabilidad interna 20 %.
+
+Los pesos son relativos y no necesitan sumar 1.
+
+
+===============================================================================
+10. GENERACION DE SOPORTES
+===============================================================================
+
+Funcion:
+
+  generate_support(
+      support_rng,
+      special_rng,
+      supports,
+      special_support_group,
+  ) -> SupportCard
+
+Proceso:
+
+  1. Selecciona un miembro de GlobalSupportGroups, salvo que se fuerce un grupo.
+  2. Selecciona rareza con support_rng.
+  3. Obtiene variacion con special_rng.
+  4. Recupera el grupo desde Catalogs.supports.
+  5. Selecciona SupportTemplate mediante su peso.
+  6. Genera stats base desde sus StatRange.
+  7. Calcula stats modificadas.
+  8. Reutiliza directamente la tupla de SkillTemplate.
+  9. Construye SupportCard.
+
+Grupos activos:
+
+  CHRISTIANITY
+  CELTIC
+
+La eleccion del grupo es uniforme. Cada grupo tiene aproximadamente 50 % antes
+de seleccionar un soporte interno.
+
+10.1 CHRISTIANITY
+
+Peso total: 1.75
+
+  LUCIFER   peso 0.10;  5.71 % dentro del grupo.
+  URIEL     peso 0.45; 25.71 % dentro del grupo.
+  SARIEL    peso 0.45; 25.71 % dentro del grupo.
+  MIGUEL    peso 0.75; 42.86 % dentro del grupo.
+
+10.2 CELTIC
+
+Peso total: 1.00
+
+  BANSHEE   peso 0.50; 50 % dentro del grupo.
+  KELPIE    peso 0.20; 20 % dentro del grupo.
+  PUKA      peso 0.15; 15 % dentro del grupo.
+  DULLAHAN  peso 0.15; 15 % dentro del grupo.
+
+SupportCard no conserva actualmente el nombre del grupo despues de generarse.
+
+
+===============================================================================
+11. INTERACCION ENTRE PERSONAJE Y SOPORTE
+===============================================================================
+
+MainCard.__post_init__ llama automaticamente apply_support().
+
+apply_support():
+
+  1. Restaura temp_health, temp_attack y temp_defense desde las stats modificadas.
+  2. Si no hay soporte, termina con los valores restaurados.
+  3. Si el elemento del soporte coincide con main_element o second_element,
+     usa un modificador de compatibilidad de 1.75.
+  4. En caso contrario usa un modificador de 1.00.
+  5. Agrega a cada stat temporal:
+
+       round(stat_modificada_del_soporte * compatibilidad * 0.15)
+
+Bonificacion efectiva:
+
+  Sin coincidencia elemental:
+    15 % de cada stat modificada del soporte.
+
+  Con coincidencia elemental:
+    26.25 % de cada stat modificada del soporte.
+
+Las stats base y modificadas del personaje no se alteran. El efecto del soporte
+vive en temp_health, temp_attack y temp_defense.
+
+reset_temp_stats() elimina las bonificaciones temporales y vuelve a las stats
+modificadas del personaje. Para restaurar tambien el soporte debe llamarse
+apply_support().
+
+La presentacion muestra una linea ACTUAL cuando los stats temporales difieren de
+los stats modificados, lo que permite observar la bonificacion equipada.
+
+
+===============================================================================
+12. MODELOS DE CARTA
+===============================================================================
+
+12.1 MainCard
+
+Es mutable y contiene:
+
+  Identidad:
+    name, desc, UUID.
+
+  Afinidad:
+    main_element, second_element.
+
+  Generacion:
+    rarity, stat_variation, ultimate_skill y support opcional.
+
+  Stats base:
+    base_health, base_attack, base_defense.
+
+  Stats modificadas:
+    mod_health, mod_attack, mod_defense.
+
+  Stats temporales:
+    temp_health, temp_attack, temp_defense.
+
+Los stats temporales usan init=False y son inicializados por __post_init__.
+
+Metodos:
+
+  apply_support()
+    Restaura stats y aplica la bonificacion del soporte equipado.
+
+  reset_temp_stats()
+    Restaura solamente las stats modificadas del personaje.
+
+  take_damage(damage, multiplier)
+    Resta max(0, damage * multiplier - temp_defense) a temp_health.
+
+  is_alive()
+    Devuelve True cuando temp_health es mayor que cero.
+
+take_damage() no limita la vida minima a cero; temp_health puede quedar negativa.
+
+12.2 SupportCard
+
+Es mutable y contiene:
+
+  name, desc, element, rarity, stat_variation,
+  base_health, base_attack, base_defense,
+  mod_health, mod_attack, mod_defense,
+  skill_list: tuple[SkillTemplate, ...].
+
+No posee UUID ni stats temporales.
+
+
+===============================================================================
+13. SISTEMA DE HABILIDADES
+===============================================================================
+
+El catalogo contiene 14 SkillTemplate.
+
+Tipos disponibles:
+
+  ATTACK
+  DEFENSE
+  HEALING
+  BUFF
+  DEBUFF
+  ULTIMATE
+
+Los catalogos actuales incluyen ATTACK, DEFENSE, HEALING y ULTIMATE. BUFF y
+DEBUFF estan preparados en el enum pero no tienen entradas actuales.
+
+Las ultimates de personajes se seleccionan desde tuple[WeightedSkill, ...].
+
+Las habilidades de soporte ya vienen resueltas desde SupportTemplate.skills y no
+se reconstruyen durante la generacion.
+
+Estado funcional:
+
+  - Carga y conversion de habilidades.
+  - Referencias desde personajes y soportes.
+  - Seleccion ponderada de ultimates.
+  - Presentacion de nombres.
+
+Estado pendiente:
+
+  - Uso de base_power.
+  - Ejecucion de ATTACK, DEFENSE, HEALING, BUFF y DEBUFF.
+  - Costes, enfriamientos o condiciones de activacion.
+
+
+===============================================================================
+14. SISTEMA ELEMENTAL
+===============================================================================
+
+Elements contiene:
+
+  LUMINE, OBSCUR, AQUA, IGNI, TERRA, VENTUS, PSI, NONE, CRYO, ELECTRO,
+  TOKSIC, PLASMA, METALI, NATURA y NEUTRAL.
+
+Los elementos de personajes, soportes y habilidades se convierten al enum durante
+la construccion de Catalogs.
+
+La coincidencia elemental entre personaje y soporte ya afecta las bonificaciones
+temporales mediante apply_support().
+
+data/element_data.json contiene una matriz ofensiva parcial con multiplicadores:
+
+  0.0
+  0.5
+  1.0
+  1.5
+  2.0
+
+Sin embargo:
+
+  - open_data() no admite todavia el tipo "element".
+  - SUPPORT_ELEMENT_PATH existe, pero no se utiliza.
+  - SUPPORTED_ELEMENT_MATRIX_VERSION existe, pero no se utiliza.
+  - Catalogs.elements continua comentado.
+  - No hay builder ni validador elemental.
+  - La matriz no interviene en take_damage() ni en habilidades.
+  - No esta definido en codigo el valor predeterminado de una pareja ausente.
+
+
+===============================================================================
+15. VALIDACION ACTUAL
+===============================================================================
+
+15.1 Personajes
+
+main_json_validator() comprueba:
+
+  - Presencia de cada GlobalCharacters activo.
+  - Diccionarios de personaje y variante.
+  - weight numerico y positivo.
+  - Campos obligatorios de cada variante.
+  - Estructura min/max de HP, ataque y defensa.
+  - Que min no sea mayor que max.
+  - Pesos positivos de ultimates.
+  - Elementos string, en mayusculas y existentes en Elements.
+
+15.2 Soportes
+
+support_json_validator() comprueba:
+
+  - Presencia de cada GlobalSupportGroups activo.
+  - Diccionario para cada grupo.
+  - Diccionario para cada soporte.
+  - weight presente, numerico y positivo.
+
+15.3 Referencias cruzadas
+
+validate_catalog_references() comprueba que las ultimates y skills construidas
+pertenezcan al catalogo de habilidades.
+
+15.4 Pendiente de validacion
+
+  - Esquema completo de soportes.
+  - Rangos numericos de soporte.
+  - skill_list como lista no vacia.
+  - Estructura completa de habilidades.
+  - base_power numerico.
+  - Elementos y SkillTypes de habilidades antes del builder.
+  - Estructura de element_data.json.
+  - content_version.
+  - Claves adicionales no registradas en los enums.
+  - Mensajes contextuales cuando falta una referencia antes del builder.
+
+
+===============================================================================
+16. PRESENTACION DE TERMINAL
+===============================================================================
+
+MainCard y SupportCard construyen cajas Unicode con emoji.
+
+Mejoras actuales:
+
+  - Calculo aproximado del ancho visual mediante unicodedata.east_asian_width().
+  - Centrado de encabezados.
+  - Descripciones divididas en varias lineas.
+  - UUID principal abreviado.
+  - Stats base y modificadas.
+  - Stats temporales visibles cuando cambian.
+  - Soporte anidado dentro de MainCard solamente cuando existe.
+  - Una carta sin soporte ya no imprime "None".
+
+Limitacion visual conocida:
+
+  fmt_line() agrega padding, pero no recorta ni divide cualquier linea que exceda
+  el ancho. Una lista larga de skills o una linea de stats puede sobresalir del
+  borde. Esto se observa actualmente en la linea de skills de algunos soportes.
+
+
+===============================================================================
+17. RESULTADOS DE VALIDACION
+===============================================================================
+
+El 4 de octubre de 2026 se verifico con Python 3.14.7:
+
+Compilacion:
+
+  - Todos los modulos compilaron correctamente.
+
+Carga:
+
+  - 2 personajes.
+  - 5 variantes.
+  - 2 grupos de soporte.
+  - 8 soportes.
+  - 14 habilidades.
+  - Plantillas construidas con los tipos esperados.
+
+Prueba masiva:
+
+  - 1,000 generaciones de personaje con soporte.
+  - 1,000 generaciones de personaje sin soporte.
+  - 1,000 generaciones de soporte independiente.
+  - 3,000 generaciones totales sin excepciones.
+
+Cobertura observada:
+
+  Personajes/variantes:
+    LEAH - Base
+    LEAH - Inquisidor 264
+    LEAH - Rebelde
+    LISBETH - Base
+    LISBETH - En la muerte
+
+  Soportes:
+    BANSHEE
+    DULLAHAN
+    KELPIE
+    LUCIFER
+    MIGUEL
+    PUKA
+    SARIEL
+    URIEL
+
+Tambien se ejecutaron directamente los tres modos de main() y produjeron salida
+valida.
+
+Comprobacion interactiva mas reciente:
+
+  - compileall termino correctamente.
+  - load_catalogs() devolvio 2 personajes, 2 grupos, 14 habilidades y plantillas
+    de los tipos esperados.
+  - Las opciones 1, 2 y 3 del menu generaron y mostraron sus cartas sin errores.
+  - En la opcion 1, MainCard mostro las stats temporales aumentadas por el soporte.
+
+Estas pruebas verifican el flujo nominal y la cobertura de contenido, pero no
+constituyen una suite automatizada permanente ni una prueba estadistica formal.
+
+
+===============================================================================
+18. COMO AMPLIAR EL CONTENIDO
+===============================================================================
+
+18.1 Personaje nuevo
+
+  1. Agregarlo a GlobalCharacters.
+  2. Agregar la misma clave en main_data.json.
+  3. Crear al menos una variante completa.
+  4. Referenciar habilidades existentes.
+  5. Mantener schema_version compatible.
+
+18.2 Variante nueva
+
+Debe contener:
+
+  weight
+  desc
+  main_element
+  second_element
+  health
+  attack
+  defense
+  ultimate_skill
+
+18.3 Grupo de soportes nuevo
+
+  1. Agregarlo a GlobalSupportGroups.
+  2. Agregar la misma clave en support_data.json.
+  3. Agregar al menos un soporte con peso positivo.
+
+18.4 Soporte nuevo
+
+Debe contener:
+
+  weight
+  desc
+  element
+  health
+  attack
+  defense
+  skill_list
+
+18.5 Habilidad nueva
+
+Debe contener:
+
+  name
+  desc
+  element
+  base_power
+  skill_type
+
+La clave utilizada por personajes o soportes debe coincidir exactamente con la
+clave del catalogo de habilidades.
+
+18.6 Cambio estructural de JSON
+
+Si se cambia la forma del documento o de sus entradas:
+
+  1. Incrementar schema_version.
+  2. Actualizar la constante SUPPORTED_* correspondiente.
+  3. Actualizar validador y builder.
+  4. Agregar una migracion o rechazar explicitamente la version anterior.
+
+Si solamente cambia el contenido sin alterar la forma, actualizar
+content_version.
+
+
+===============================================================================
+19. SISTEMAS FUNCIONALES, PARCIALES Y PENDIENTES
+===============================================================================
+
+Funcionales:
+
+  - Los tres modos de generacion.
+  - Tres RNG con diseño hibrido.
+  - Rarezas ponderadas.
+  - Personajes y variantes ponderadas.
+  - Grupos y soportes ponderados.
+  - Ultimates ponderadas.
+  - Catalogos tipados desde JSON versionado.
+  - Resolucion de referencias de habilidades.
+  - Stats base y modificadas.
+  - Estado temporal de MainCard.
+  - Bonificacion de soporte con compatibilidad elemental.
+  - Presentacion Unicode de cartas.
+  - Validacion parcial de datos.
+
+Parciales:
+
+  - Sistema elemental ofensivo.
+  - Validacion integral de los cuatro JSON.
+  - Metadatos de content_version.
+  - Estado de combate.
+  - Ajuste de texto largo en terminal.
+
+No implementados:
+
+  - Motor de turnos.
+  - Ejecucion de habilidades.
+  - Formula elemental de daño.
+  - Curacion, defensa activa, buffs y debuffs.
+  - Cambio de soporte durante juego.
+  - Inventario o coleccion.
+  - Persistencia y serializacion.
+  - Niveles, experiencia y evolucion.
+  - Enemigos y condiciones de victoria.
+  - Interfaz grafica.
+  - Suite permanente de pruebas automatizadas.
+
+
+===============================================================================
+20. OBSERVACIONES DE MANTENIMIENTO
+===============================================================================
+
+  - Cambiar el orden de llamadas a un RNG cambia los resultados asociados a una
+    semilla. Conviene versionar el algoritmo si las semillas se comparten.
+
+  - El proyecto declara content_version, pero Catalogs no la conserva. Guardarla
+    sera importante si se persisten o intercambian cartas.
+
+  - NEUTRAL y NONE deben mantener una diferencia semantica clara. Varias variantes
+    usan actualmente NEUTRAL como segundo elemento.
+
+  - El nombre del grupo no se conserva dentro de SupportCard. Debe agregarse si
+    las futuras interacciones dependen de la faccion del soporte.
+
+  - La inmutabilidad de Catalogs no es profunda: sus diccionarios pueden mutar.
+
+  - Los validadores deberian completarse antes de aceptar contenido externo.
+
+  - No hay dependencias externas activas ni archivo requirements.txt.
+
+  - La salida Unicode puede necesitar python -X utf8 en ciertas consolas Windows.
+
+
+===============================================================================
+FIN DEL DOCUMENTO
+===============================================================================
