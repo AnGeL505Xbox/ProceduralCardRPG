@@ -1,4 +1,4 @@
-#VERSION 1.2
+#VERSION 1.3
 import json
 import textwrap
 import unicodedata
@@ -36,23 +36,22 @@ class SupportCard:
         description: str = self.desc
         element: str = self.element.name
         rarity: float = self.rarity.value
-        
+
         stat_variation: float = self.stat_variation
-        
+
         #Stats base
         base_health: float = self.base_health
         base_attack: int = self.base_attack
         base_defense: int = self.base_defense
-        
+
         #Stats modificados
         mod_health: float = self.mod_health
         mod_attack: int = self.mod_attack
         mod_defense: int = self.mod_defense
-        
+
         skill_list: list[dict] = []
         for skill in self.skill_list:
             skill_list.append(skill.to_json())
-        skill_tuple = tuple(skill_list)
 
         id: str = self.id.hex
 
@@ -72,13 +71,39 @@ class SupportCard:
             "mod_attack": mod_attack,
             "mod_defense": mod_defense,
 
-            "skill_list": skill_tuple
+            "skill_list": skill_list
         }
         return data
 
+    @classmethod
+    def from_json(cls, data: dict):
+        element = Elements(data["element"])
+        rarity = Rarity(data["rarity"])
+
+        skill_list = []
+        for skill in data["skill_list"]:
+            skill_list.append(SkillTemplate.from_json(skill))
+
+        skill_tuple = tuple(skill_list)
+        return cls(
+            id = UUID(data["id"]),
+            name = data["name"],
+            desc = data["description"],
+            element = element,
+            rarity = rarity,
+            stat_variation = data["stat_variation"],
+            base_health = data["base_health"],
+            base_attack = data["base_attack"],
+            base_defense = data["base_defense"],
+            mod_health = data["mod_health"],
+            mod_attack = data["mod_attack"],
+            mod_defense = data["mod_defense"],
+            skill_list = skill_tuple
+        )
+
     def debug_json_support(self):
         return json.dumps(self.to_json())
-    
+
 
     def __str__(self) -> str:
         width = 50  # Un poco más estrecha para encajar bien si se anida dentro de MainCard
@@ -98,7 +123,7 @@ class SupportCard:
 
         rarity_str = getattr(self.rarity, 'name', str(self.rarity))
         elem_str = getattr(self.element, 'name', str(self.element))
-        
+
         skills_formatted = [getattr(s, 'name', str(s)) for s in self.skill_list]
         skills_str = ", ".join(skills_formatted) if skills_formatted else "Ninguna"
 

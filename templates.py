@@ -15,7 +15,7 @@ class SkillTemplate:
     skill_type: SkillTypes
     base_power: int
 
-    def to_json(self):
+    def to_json(self) -> dict:
         name: str = self.name
         description: str = self.desc
         element: str = self.element.name
@@ -31,6 +31,19 @@ class SkillTemplate:
         }
         
         return data
+
+    @classmethod
+    def from_json(cls, data: dict) -> "SkillTemplate":
+        """Reconstruye los datos de una habilidad serializada."""
+        element = Elements(data["element"])
+        skill_type = SkillTypes(data["skill_type"])
+        return cls(
+            name = data["name"],
+            desc = data["description"],
+            element = element,
+            skill_type = skill_type,
+            base_power = data["base_power"]
+        )
 
 
 @dataclass(frozen=True)

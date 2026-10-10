@@ -39,6 +39,33 @@ class MainCard:
 
     id: UUID = field(default_factory=uuid4)
 
+    @classmethod
+    def from_json(cls, data: dict, support: SupportCard | None = None):
+        """Reconstruye una carta con su soporte previamente resuelto.
+
+        Las estadísticas temporales se recalculan al equipar el soporte;
+        el inventario no guarda el estado de una partida en curso.
+        """
+        support_id = data["support"]
+        if support_id is None:
+            if support is not None:
+                raise ValueError("La carta guardada no tiene un soporte equipado")
+        elif support is None or UUID(support_id) != support.id:
+            raise ValueError(f"Soporte ausente o incompatible: {support_id}")
+        return cls(
+            id=UUID(data["id"]),
+            name=data["name"], desc=data["description"],
+            main_element=Elements(data["main_element"]),
+            second_element=Elements(data["second_element"]),
+            rarity=Rarity(data["rarity"]), support=support,
+            base_health=data["base_health"], base_attack=data["base_attack"],
+            base_defense=data["base_defense"],
+            stat_variation=data["stat_variation"],
+            ultimate_skill=SkillTemplate.from_json(data["ultimate_skill"]),
+            mod_health=data["mod_health"], mod_attack=data["mod_attack"],
+            mod_defense=data["mod_defense"],
+        )
+
     def to_json(self):
         name: str = self.name
         description: str = self.desc
@@ -63,10 +90,10 @@ class MainCard:
         id: str = self.id.hex
         data = {
             "id": id,
-            "name": f"{name}",
-            "description": f"{description}",
-            "main_element": f"{main}",
-            "second_element": f"{second}",
+            "name": name,
+            "description": description,
+            "main_element": main,
+            "second_element": second,
 
             "rarity": rarity,
             "support": support,
